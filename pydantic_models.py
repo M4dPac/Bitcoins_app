@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class User(BaseModel):
@@ -9,8 +9,8 @@ class User(BaseModel):
     nick: str | None = None
     create_date: datetime
     wallet: 'Wallet'
-    sent_transaction: list['Transaction'] | None = None
-    received_transaction: list['Transaction'] | None = None
+    sent_transaction: list['Transaction'] = Field(default_factory=list)
+    received_transaction: list['Transaction'] = Field(default_factory=list)
 
 
 class Wallet(BaseModel):
@@ -19,8 +19,8 @@ class Wallet(BaseModel):
     balance: float = 0.0
     private_key: str
     address: str
-    sent_transactions: list['Transaction'] | None = None
-    received_transaction: list['Transaction'] | None = None
+    sent_transactions: list['Transaction'] = Field(default_factory=list)
+    received_transaction: list['Transaction'] = Field(default_factory=list)
 
 
 class Transaction(BaseModel):
