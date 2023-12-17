@@ -13,6 +13,19 @@ class User(BaseModel):
     received_transaction: list['Transaction'] = Field(default_factory=list)
 
 
+class User_to_update(BaseModel):
+    id: int
+    tg_id: int
+    nick: str | None = None
+    create_date: datetime | None = None
+    wallet: 'Wallet' | None = None
+
+
+class User_to_create(BaseModel):
+    tg_id: int | None = None
+    nick: str | None = None
+
+
 class Wallet(BaseModel):
     id: int
     user: User | None

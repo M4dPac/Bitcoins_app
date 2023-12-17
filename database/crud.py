@@ -1,7 +1,7 @@
 import bit
 
 import pydantic_models
-from db import *
+from database.db import *
 
 
 @db_session
@@ -84,10 +84,47 @@ def update_all_wallets():
 
 
 @db_session
-def update_balance(wallet: pydantic_models.Wallet, testnet: bool = False):
+def update_balance(wallet: pydantic_models.Wallet):
     key = bit.wif_to_key(wallet.private_key)
 
     wallet.balance = key.get_balance()
     return wallet.balance
+
+
+@db_session
+def get_user_by_id(id: int):
+    return User[id]
+
+
+@db_session
+def get_user_by_tg_id(id: int):
+    return User.select(lambda u: u.tg_id == id).first()
+
+
+@db_session
+def get_transaction_info(transaction: pydantic_models.Transaction):
+    return transaction.to_dict(related_objects=True)
+
+
+@db_session
+def get_wallet_info(wallet: pydantic_models.Wallet):
+    update_wallet_balance(wallet)
+    return wallet.to_dict(with_collections=True, related_objects=True)
+
+
+@db_session
+def get_user_info(user: pydantic_models.User):
+    data = user.to_dict(with_collections=True, related_objects=True)
+    data['wallet'] = get_wallet_info(data['wallet'])
+    return data
+
+
+@db_session
+def update_user(user: pydantic_models.User):
+    db_user = User[user.id]
+    del user['sent_transaction']
+    del user['received_transaction']
+    for k, v in user.items():
+        setattr(db_user, k, v)
 
 # wallet = Key(config.PRIVATE_KEY)
