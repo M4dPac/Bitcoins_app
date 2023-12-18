@@ -4,6 +4,10 @@ import pydantic_models
 from database.db import *
 
 
+def to_dict(x: db.Entity):
+    return x.to_dict(with_collections=True)
+
+
 @db_session
 def create_wallet(user: User = None,
                   private_key: str = None,
@@ -92,8 +96,13 @@ def update_balance(wallet: pydantic_models.Wallet):
 
 
 @db_session
-def get_user_by_id(id: int):
-    return User[id]
+def get_users() -> list[pydantic_models.User]:
+    return [to_dict(user) for user in User.select()]
+
+
+@db_session
+def get_user_by_id(id: int) -> pydantic_models.User:
+    return to_dict(User[id])
 
 
 @db_session
@@ -109,22 +118,30 @@ def get_transaction_info(transaction: pydantic_models.Transaction):
 @db_session
 def get_wallet_info(wallet: pydantic_models.Wallet):
     update_wallet_balance(wallet)
-    return wallet.to_dict(with_collections=True, related_objects=True)
+    return to_dict(wallet)
 
 
 @db_session
 def get_user_info(user: pydantic_models.User):
-    data = user.to_dict(with_collections=True, related_objects=True)
+    data = to_dict(user)
     data['wallet'] = get_wallet_info(data['wallet'])
     return data
 
 
 @db_session
-def update_user(user: pydantic_models.User):
-    db_user = User[user.id]
-    del user['sent_transaction']
-    del user['received_transaction']
+def update_user(user: pydantic_models.UserToUpdate) -> pydantic_models.User:
+    db_user = User[user['id']]
     for k, v in user.items():
         setattr(db_user, k, v)
+        return to_dict(db_user)
+
+
+@db_session
+def delete_user(user_id: int):
+    User[user_id].delete()
+    return True
+
 
 # wallet = Key(config.PRIVATE_KEY)
+if __name__ == '__main__':
+    pass
