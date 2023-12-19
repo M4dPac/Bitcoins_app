@@ -15,7 +15,6 @@ def create_wallet(user: User = None,
                   ):
     raw_wallet = bit.Key(private_key) if not testnet else bit.PrivateKeyTestnet(private_key)
     wallet = Wallet(user=user, private_key=raw_wallet.to_wif(), address=raw_wallet.address)
-    flush()
     return wallet
 
 
@@ -31,8 +30,7 @@ def create_user(
     if nick is not None:
         data['nick'] = nick
     user = User(**data)
-    flush()
-    return user
+    return to_dict(user)
 
 
 @db_session
@@ -73,16 +71,9 @@ def create_transaction(
 
 
 @db_session
-def update_wallet_balance(wallet: pydantic_models.Wallet):
-    bit_wallet = bit.wif_to_key(wallet.private_key)
-    wallet.balance = bit_wallet.get_balance()
-    return wallet
-
-
-@db_session
 def update_all_wallets():
     for wallet in Wallet.select():
-        update_wallet_balance(wallet)
+        update_balance(wallet)
         print(wallet.address, wallet.balance)
     return True
 
@@ -90,9 +81,21 @@ def update_all_wallets():
 @db_session
 def update_balance(wallet: pydantic_models.Wallet):
     key = bit.wif_to_key(wallet.private_key)
-
     wallet.balance = key.get_balance()
     return wallet.balance
+
+
+@db_session
+def get_user_balance_by_id(user_id: int):
+    wallet = User[user_id].wallet
+    update_balance(wallet)
+    return wallet.balance
+
+
+@db_session
+def get_total_balance() -> float:
+    update_all_wallets()
+    return sum(w.balance for w in Wallet.select())
 
 
 @db_session
@@ -101,13 +104,21 @@ def get_users() -> list[pydantic_models.User]:
 
 
 @db_session
-def get_user_by_id(id: int) -> pydantic_models.User:
-    return to_dict(User[id])
+def get_user_by_id(user_id: int) -> pydantic_models.User:
+    return get_user_info(User[user_id])
 
 
 @db_session
-def get_user_by_tg_id(id: int):
-    return User.select(lambda u: u.tg_id == id).first()
+def get_user_info(user: pydantic_models.User):
+    data = to_dict(user)
+    data['wallet'] = get_wallet_info(user.wallet)
+    return data
+
+
+@db_session
+def get_user_by_tg_id(tg_id: int):
+    user = User.select(lambda u: u.tg_id == tg_id).first()
+    return get_user_info(user)
 
 
 @db_session
@@ -117,15 +128,8 @@ def get_transaction_info(transaction: pydantic_models.Transaction):
 
 @db_session
 def get_wallet_info(wallet: pydantic_models.Wallet):
-    update_wallet_balance(wallet)
+    update_balance(wallet)
     return to_dict(wallet)
-
-
-@db_session
-def get_user_info(user: pydantic_models.User):
-    data = to_dict(user)
-    data['wallet'] = get_wallet_info(data['wallet'])
-    return data
 
 
 @db_session

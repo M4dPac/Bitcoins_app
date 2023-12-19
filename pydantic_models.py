@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field
 
 
 class User(BaseModel):
@@ -13,19 +13,6 @@ class User(BaseModel):
     wallet: Wallet
     sent_transaction: list[Transaction] = Field(default_factory=list)
     received_transaction: list[Transaction] = Field(default_factory=list)
-
-
-class UserToUpdate(BaseModel):
-    id: int
-    # wallet: Wallet = None
-    tg_id: int | None = None
-    nick: str | None = None
-    create_date: datetime | None = None
-
-
-class UserToCreate(BaseModel):
-    tg_id: int | None = None
-    nick: str | None = None
 
 
 class Wallet(BaseModel):
@@ -51,3 +38,16 @@ class Transaction(BaseModel):
     fee: float
     date_of_transaction: datetime
     tx_hash: str
+
+
+class UserToUpdate(BaseModel):
+    id: int
+    wallet: Wallet | None = None
+    tg_id: int | None = None
+    nick: str | None = None
+    create_date: datetime | None = None
+
+
+class UserToCreate(BaseModel):
+    tg_id: int | None = None
+    nick: str | None = None

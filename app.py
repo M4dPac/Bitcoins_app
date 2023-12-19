@@ -7,14 +7,8 @@ api = fastapi.FastAPI()
 
 
 @api.get('/users/')
-def get_users(skip: int = 0, limit: int = 10):
+def get_all_users(skip: int = 0, limit: int = 10) -> list[pydantic_models.User]:
     return crud.get_users()
-
-
-# @api.post('/user/create')
-# def create_user(user: pydantic_models.User = fastapi.Body()):
-#     fake_database['users'].append(user)
-#     return {'User Created!': user}
 
 
 @api.get("/user/{user_id}")
@@ -22,8 +16,13 @@ def get_user(user_id: int):
     return crud.get_user_by_id(user_id)
 
 
+@api.post('/user/create')
+def create_user(user: pydantic_models.UserToCreate = fastapi.Body()) -> pydantic_models.User:
+    return crud.create_user(**user)
+
+
 @api.put('/user/{user_id}')
-def update_user(user_id: int, user: pydantic_models.UserToUpdate = fastapi.Body()):
+def update_user(user_id: int, user: pydantic_models.UserToUpdate = fastapi.Body()) -> pydantic_models.User:
     return crud.update_user(user)
 
 
@@ -31,16 +30,21 @@ def update_user(user_id: int, user: pydantic_models.UserToUpdate = fastapi.Body(
 def delete_user(user_id: int = fastapi.Path()):
     return crud.delete_user(user_id)
 
+
 # @api.get('/get_info_by_user_id/{id:int}')
 # def get_info_about_user(id):
 #     return crud.get_user_by_id(id=id)
-#
-#
-# @api.get('/get_user_balance_by_id/{id:int}')
-# def get_user_balance(id):
-#     return fake_database['users'][id - 1]['balance']
-#
-#
+
+
+@api.get('/get_user_balance/{user_id}')
+def get_user_balance_by_id(user_id: int = fastapi.Path()):
+    return crud.get_user_balance_by_id(user_id)
+
+
+@api.get('/get_total_balance')
+def get_total_balance():
+    return crud.get_total_balance()
+
 # @api.get('/get_total_balance')
 # def get_info_about_user():
 #     total_balance: float = 0.0
