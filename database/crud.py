@@ -35,19 +35,20 @@ def create_user(
 
 @db_session
 def create_transaction(
-        sender: User,
-        amount_btc_without_fee: float,
+        sender_id: int,
         receiver_address: str,
+        amount_btc_without_fee: float,
         fee: float | None = None,
 ):
     """
-    :param sender: объект User
+    :param sender_id: User.id
     :param amount_btc_without_fee:  количество биткоинов исключая комиссию, значение в сатоши
     :param receiver_address: адрес получателя, строка с адресом
     :param fee: абсолютная комиссия, исчисляем в сатоши - необязательно.
     :param testnet: в тестовой сети ли мы работаем
     :return: Transaction object
     """
+    sender = User[sender_id]
     wallet_of_sender = bit.wif_to_key(sender.wallet.private_key)
     sender.wallet.balance = wallet_of_sender.get_balance()
     if not fee:
@@ -100,7 +101,7 @@ def get_total_balance() -> float:
 
 @db_session
 def get_users() -> list[pydantic_models.User]:
-    return [to_dict(user) for user in User.select()]
+    return [get_user_info(user) for user in User.select()]
 
 
 @db_session
@@ -117,8 +118,7 @@ def get_user_info(user: pydantic_models.User):
 
 @db_session
 def get_user_by_tg_id(tg_id: int):
-    user = User.select(lambda u: u.tg_id == tg_id).first()
-    return get_user_info(user)
+    return User.select(lambda u: u.tg_id == tg_id).first()
 
 
 @db_session
@@ -145,7 +145,4 @@ def delete_user(user_id: int):
     User[user_id].delete()
     return True
 
-
 # wallet = Key(config.PRIVATE_KEY)
-if __name__ == '__main__':
-    pass

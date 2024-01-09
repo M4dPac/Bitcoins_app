@@ -7,7 +7,7 @@ api = fastapi.FastAPI()
 
 
 @api.get('/users/')
-def get_all_users(skip: int = 0, limit: int = 10) -> list[pydantic_models.User]:
+def get_all_users(skip: int = 0, limit: int = 10):
     return crud.get_users()
 
 
@@ -42,7 +42,7 @@ def delete_user(user_id: int = fastapi.Path()):
 
 
 @api.get('/get_user_balance/{user_id}')
-def get_user_balance_by_id(user_id: int = fastapi.Path()):
+def get_user_balance(user_id: int = fastapi.Path()):
     return crud.get_user_balance_by_id(user_id)
 
 
@@ -51,11 +51,11 @@ def get_total_balance():
     return crud.get_total_balance()
 
 
-@api.post('create_transaction')
+@api.post('/create_transaction')
 def create_transaction(transaction: pydantic_models.Create_Transaction = fastapi.Body()):
     user = crud.get_user_by_tg_id(tg_id=transaction.sender_tg_id)
     return crud.create_transaction(
-        sender=user,
+        sender_id=user.id,
         receiver_address=transaction.receiver_address,
         amount_btc_without_fee=transaction.amount_btc_without_fee
     )
