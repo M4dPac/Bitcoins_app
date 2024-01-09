@@ -40,6 +40,12 @@ class Transaction(BaseModel):
     tx_hash: str
 
 
+class Create_Transaction(BaseModel):
+    sender_tg_id: int
+    receiver_address: str
+    amount_btc_without_fee: float
+
+
 class UserToUpdate(BaseModel):
     id: int
     wallet: Wallet | None = None

@@ -67,7 +67,7 @@ def create_transaction(
                               amount_btc_with_fee=amount_btc_with_fee,
                               amount_btc_without_fee=amount_btc_without_fee,
                               tx_hash=tx_hash)
-    return transaction
+    return to_dict(transaction)
 
 
 @db_session
@@ -104,7 +104,7 @@ def get_users() -> list[pydantic_models.User]:
 
 
 @db_session
-def get_user_by_id(user_id: int) -> pydantic_models.User:
+def get_user_by_id(user_id: int):
     return get_user_info(User[user_id])
 
 
@@ -133,7 +133,7 @@ def get_wallet_info(wallet: pydantic_models.Wallet):
 
 
 @db_session
-def update_user(user: pydantic_models.UserToUpdate) -> pydantic_models.User:
+def update_user(user: pydantic_models.UserToUpdate):
     db_user = User[user['id']]
     for k, v in user.items():
         setattr(db_user, k, v)
